@@ -2,11 +2,11 @@
 title: "HW6"
 output: github_document
 ---
-```{r, include = FALSE}
+
+```{r set_up, include = FALSE}
 library(tidyverse)
-library(p8105.datasets)
 library(modelr)
-library(mgcv)
+library(p8105.datasets)
 
 knitr::opts_chunk$set(
   fig.width = 6,
@@ -31,36 +31,34 @@ set.seed(1)
 
 
 
-
-
-
 ### Problem 1
 ```{r}
-homicide_df =
-  read_csv("data/homicide-data.csv", na = c("", "NA", "Unknown")) %>% 
+homicide_df = 
+  read_csv("homicide-data.csv", na = c("", "NA", "Unknown")) %>% 
   mutate(
-    city_state = str_c(city, state, sep = ','),
+    city_state = str_c(city, state, sep = ","),
     victim_age = as.numeric(victim_age),
     resolution = case_when(
-      disposition == 'Closed without arrest' ~ 0,
-      disposition == 'Open/No arrest' ~ 0, 
-      disposition == 'Closed by arrest' ~ 1)
+      disposition == "Closed without arrest" ~ 0,
+      disposition == "Open/No arrest" ~ 0,
+      disposition == "Closed by arrest" ~ 1
+    )
   ) %>% 
   filter(
     victim_race %in% c("White", "Black"),
-    city_state != "Tulsa, AL") %>% 
-  select(city_state, resolution,victim_age, victim_race, victim_sex)
+    city_state != "Tulsa,AL") %>% 
+  select(city_state, resolution, victim_age, victim_race, victim_sex)
 ```
 
 
 Start with one city.
 
 ```{r}
-baltimore_df = 
+baltimore_df =
   homicide_df %>% 
   filter(city_state == "Baltimore,MD")
 
-glm(resolution ~ victim_age + victim_race + victim_sex,
+glm(resolution ~ victim_age + victim_race + victim_sex, 
     data = baltimore_df,
     family = binomial()) %>% 
   broom::tidy() %>% 
@@ -92,22 +90,8 @@ models_results_df =
     CI_lower = exp(estimate - 1.96 * std.error),
     CI_upper = exp(estimate + 1.96 * std.error)
   ) %>% 
-  select(city_state, term, OR, starts_with("CI"))
+  select(city_state, term, OR, starts_with("CI")) 
 ```
-
-```{r}
-models_results_df %>% 
-  filter(term == 'victim_sexMale') %>% 
-  mutate(city_state = fct_reorder(city_state, OR)) %>% 
-  ggplot(aes(x = city_state, y = OR)) + 
-  geom_point() +
-  geom_errorbar(aes(ymin = CI_lower, ymax - CI_upper)) +
-  theme(axis.test.x = element_text(angle = 90, hjust = 1))
-
-```
-
-
-
 
 ```{r}
 models_results_df %>% 
@@ -117,6 +101,13 @@ models_results_df %>%
   geom_point() + 
   geom_errorbar(aes(ymin = CI_lower, ymax = CI_upper)) + 
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+
+
+
+```{r}
+
 ```
 
 
