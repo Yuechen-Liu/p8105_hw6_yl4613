@@ -144,7 +144,7 @@ cleanbirth_df =
 
 
 Propose a regression model for birthweight. 
-Suppose: the predictors are: mom's weight gain + mom's delivery weight + mom's delivery age
+Suppose: the predictors are: baby's head circumference + baby's birth length + mom's delivery weight + gastational age in weeks + mom's height + mean cigar for mom per day + mom's race.
 ```{r}
 hypo_model = lm(bwt ~ bhead + blength + delwt + gaweeks + mheight + smoken + mrace, data = cleanbirth_df)
 
@@ -173,6 +173,7 @@ hypo_resid_fit_plot =
 
 hypo_resid_fit_plot
 ```
+The plot shows that residuals are nearly symmetric by the 'y = 0' line. Even though we have some outliers, we can still say the model is valid.
 
 
 Compare your model to two others.
@@ -212,7 +213,7 @@ cv_df %>%
 
 
 ```
-
+Okay...seems like my hypothetical model is the worst one. So, from the plot, the interaction model is with the least Root Mean Square Error. Among those 3 models we should choose the interaction one.
 
 
 
@@ -261,7 +262,7 @@ bootstraps_r%>%
     ci_lower = quantile(r.squared,0.025), 
     ci_upper = quantile(r.squared, 0.975))
 ```
-
+R square values are nearly normally distributed. The mean value is around 0.91, and the 95% CI is (0.8937522, 0.9270975)	
 
 Now go on with the log(beta0 * beta1) 
 ```{r}
@@ -296,57 +297,6 @@ bootstraps_log%>%
 
 
 ```
+Values for log(β^0+β^1) are also normally distributed. The mean is around 2.0125. The 95% CI is (1.965202, 2.058345)
 
-
-
-```{r}
-
-
-
-```
-
-
-
-```{r}
-
-
-
-```
-
-
-
-
-
-```{r}
-
-
-
-```
-
-
-
-
-
-```{r}
-
-
-
-```
-
-
-
-```{r}
-
-
-
-```
-
-
-
-
-```{r}
-
-
-
-```
 
