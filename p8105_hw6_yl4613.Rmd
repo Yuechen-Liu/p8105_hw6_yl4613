@@ -107,23 +107,27 @@ models_results_df %>%
 
 ### Problem 2
 
-Load the data
+Load the data & do some tidying
 ```{r}
 birth_df = 
   read_csv("birthweight.csv") %>% 
   janitor::clean_names() %>%
-  drop_na() %>% 
-  frace <- is.factor(frace) %>%
-  mrace <- is.factor(mrace) %>% 
+  drop_na()
+cleanbirth_df = 
+  birth_df %>% 
+  mutate(
+    babysex = factor(babysex),
+    frace = factor(frace),
+    mrace = factor(mrace)) %>% 
   mutate(
     frace = case_when(
-      frace == 1 ~ "White",
-      frace == 2 ~ "Black",
-      frace == 3 ~ "Asian",
-      frace == 4 ~ "Puerto Rican",
-      frace == 8 ~ "Other",
-      frace == 9 ~ "Unknown"
-    ) %>% 
+    frace == 1 ~ "White",
+    frace == 2 ~ "Black",
+    frace == 3 ~ "Asian",
+    frace == 4 ~ "Puerto Rican",
+    frace == 8 ~ "Other",
+    frace == 9 ~ "Unknown"
+    ))%>% 
   mutate(
     mrace =case_when(
       mrace == 1 ~ "White",
@@ -135,42 +139,65 @@ birth_df =
   mutate(
     babysex = case_when(
       babysex == 1 ~ "Male",
-      babysex == 2 ~ "Female"
-    )
-    
-  )
-  )
+      babysex == 2 ~ "Female"))
 ```
 
 
 Propose a regression model for birthweight. 
+Suppose: the predictors are: mom's weight gain + mom's delivery weight + mom's delivery age
 ```{r}
+hypo_model = lm(bwt ~ wtgain + delwt + fincome, data = cleanbirth_df)
+  
+hypo_model
+
+```
 
 
+Show a plot of model residuals against fitted values.
+```{r}
+hypo_resid_fit_plot =
+  cleanbirth_df %>% 
+  add_residuals(hypo_model)%>%
+  add_predictions(hypo_model)%>%
+  ggplot(aes(x = pred, y = resid))+
+  geom_point() + 
+  labs(
+    x = 'fitted values',
+    y = 'residuals',
+    title = 'residuals against fitted values'
+  )
+
+hypo_resid_fit_plot
+```
+
+
+Compare your model to two others.
+```{r}
+maineffect_model = lm(bwt ~ blength + gaweeks, data = cleanbirth_df)
+interaction_model = lm(bwt ~ bhead + blength + babysex + bhead*blength + bhead*babysex + blength*babysex, data = cleanbirth_df)
+
+cv_df = 
+  crossv_mc(cleanbirth_df, 100) %>%
+  mutate(
+    train = map(train, as_tibble),
+    test = map(test, as_tibble)) %>% 
+  mutate(
+    maineffect_model  = map(train, ~lm(bwt ~ blength + gaweeks, data = cleanbirth_df)),
+    interaction_model  = map(train, ~lm(bwt ~ bhead + blength + babysex + bhead*blength + bhead*babysex + blength*babysex, data = cleanbirth_df)),
+    hypo_model  = map(train, ~lm(bwt ~ wtgain + delwt + fincome, data = cleanbirth_df))) %>% 
+  mutate(
+    rmse_maineffect = map2_dbl(maineffect_model, test, ~rmse(model = .x, data = .y)),
+    rmse_interactioh = map2_dbl(interaction_model, test, ~rmse(model = .x, data = .y)),
+    rmse_hypo = map2_dbl(hypo_model, test, ~rmse(model = .x, data = .y)))
 
 ```
 
 
 
-```{r}
-
-
-
-```
-
-
 
 ```{r}
-
-
-
-```
-
-
-
-
-```{r}
-
+cv_df %>% 
+  select()
 
 
 ```
