@@ -146,7 +146,7 @@ cleanbirth_df =
 Propose a regression model for birthweight. 
 Suppose: the predictors are: mom's weight gain + mom's delivery weight + mom's delivery age
 ```{r}
-hypo_model = lm(bwt ~ wtgain + delwt + fincome, data = cleanbirth_df)
+hypo_model = lm(bwt ~ bhead + blength + delwt + gaweeks + mheight + smoken + mrace, data = cleanbirth_df)
   
 hypo_model
 
@@ -182,9 +182,9 @@ cv_df =
     train = map(train, as_tibble),
     test = map(test, as_tibble)) %>% 
   mutate(
-    maineffect_model  = map(train, ~lm(bwt ~ blength + gaweeks, data = cleanbirth_df)),
-    interaction_model  = map(train, ~lm(bwt ~ bhead + blength + babysex + bhead*blength + bhead*babysex + blength*babysex, data = cleanbirth_df)),
-    hypo_model  = map(train, ~lm(bwt ~ wtgain + delwt + fincome, data = cleanbirth_df))) %>% 
+    maineffect_model  = map(.x = train, ~lm(bwt ~ blength + gaweeks, data = .x)),
+    interaction_model  = map(.x = train, ~lm(bwt ~ bhead + blength + babysex + bhead*blength + bhead*babysex + blength*babysex, data = .x)),
+    hypo_model  = map(.x = train, ~lm(bwt ~ wtgain + delwt + fincome, data = .x))) %>% 
   mutate(
     rmse_maineffect = map2_dbl(maineffect_model, test, ~rmse(model = .x, data = .y)),
     rmse_interactioh = map2_dbl(interaction_model, test, ~rmse(model = .x, data = .y)),
@@ -197,15 +197,36 @@ cv_df =
 
 ```{r}
 cv_df %>% 
-  select()
+  select(starts_with("rmse")) %>% 
+  pivot_longer(
+    everything(),
+    names_to = "model", 
+    values_to = "rmse",
+    names_prefix = "rmse_") %>% 
+  mutate(model = fct_inorder(model)) %>% 
+  ggplot(aes(x = model, y = rmse)) + geom_violin()
 
 
 ```
 
 
 
-```{r}
 
+### Problem 3
+
+Download the data using code chunk given.
+```{r}
+weather_df = 
+  rnoaa::meteo_pull_monitors(
+    c("USW00094728"),
+    var = c("PRCP", "TMIN", "TMAX"), 
+    date_min = "2017-01-01",
+    date_max = "2017-12-31") %>%
+  mutate(
+    name = recode(id, USW00094728 = "CentralPark_NY"),
+    tmin = tmin / 10,
+    tmax = tmax / 10) %>%
+  select(name, id, everything())
 
 
 ```
